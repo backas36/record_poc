@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:record_poc/pages/home_page.dart';
+import 'package:record_poc/pages/audio_record_page.dart';
 
 void main() {
   runApp(const ProviderScope(child: MainApp()));
@@ -17,7 +17,7 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const AudioRecordPage(),
     );
   }
 }

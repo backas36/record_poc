@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:record_poc/controllers/audio_record_controller.dart';
 
-class RecordingButtonWidget extends StatelessWidget {
-  const RecordingButtonWidget({
-    super.key,
-    required this.isRecording,
-    required this.startRecording,
-    required this.stopRecording,
-  });
-
-  final bool isRecording;
-  final VoidCallback startRecording;
-  final VoidCallback stopRecording;
+class RecordingButtonWidget extends ConsumerWidget {
+  const RecordingButtonWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isRecording = ref.watch(
+      audioRecordControllerProvider.select((value) => value.isRecording),
+    );
+    final startRecording = ref
+        .read(audioRecordControllerProvider.notifier)
+        .startRecording;
+    final stopRecording = ref
+        .read(audioRecordControllerProvider.notifier)
+        .stopRecording;
     return FloatingActionButton(
       onPressed: () async {
         if (isRecording) {

@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:record_poc/controllers/audio_record_controller.dart';
 
-class PlayAudioWidget extends StatelessWidget {
-  const PlayAudioWidget({
-    super.key,
-    required this.isLoading,
-    required this.completedAudioFilePath,
-    required this.isPlaying,
-    required this.togglePlayAudio,
-  });
-
-  final bool isLoading;
-  final String? completedAudioFilePath;
-  final bool isPlaying;
-  final VoidCallback togglePlayAudio;
+class PlayAudioWidget extends ConsumerWidget {
+  const PlayAudioWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final completedAudioFilePath = ref.watch(
+      audioRecordControllerProvider.select(
+        (value) => value.completedAudioFilePath,
+      ),
+    );
+    final isPlaying = ref.watch(
+      audioRecordControllerProvider.select((value) => value.isPlaying),
+    );
+    final isLoading = ref.watch(
+      audioRecordControllerProvider.select((value) => value.isLoading),
+    );
+
     return SizedBox(
       width: MediaQuery.sizeOf(context).width,
       child: Column(
@@ -26,7 +29,9 @@ class PlayAudioWidget extends StatelessWidget {
           if (completedAudioFilePath != null)
             MaterialButton(
               onPressed: () async {
-                togglePlayAudio();
+                ref
+                    .read(audioRecordControllerProvider.notifier)
+                    .togglePlayAudio();
               },
               color: Theme.of(context).colorScheme.primary,
               child: Text(
