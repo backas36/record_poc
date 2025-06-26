@@ -19,16 +19,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  //final AudioRecorder _audioRecorder = AudioRecorder();
-  final AudioPlayer _audioPlayer = AudioPlayer();
-
-  //final bool _isRecording = false;
-  String? _completedAudioFilePath;
-  bool _isPlaying = false;
-
   @override
   Widget build(BuildContext context) {
-    debugPrint("isPlaying: $_isPlaying");
     return Scaffold(
       floatingActionButton: _buildRecordButton(),
       body: _buildPlayAudio(),
@@ -36,36 +28,40 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildPlayAudio() {
+    final completedAudioFilePath = ref.watch(
+      audioRecordControllerProvider.select(
+        (value) => value.completedAudioFilePath,
+      ),
+    );
+    final isPlaying = ref.watch(
+      audioRecordControllerProvider.select((value) => value.isPlaying),
+    );
+
+    final isLoading = ref.watch(
+      audioRecordControllerProvider.select((value) => value.isLoading),
+    );
+
     return SizedBox(
       width: MediaQuery.sizeOf(context).width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (_completedAudioFilePath != null)
+          if (isLoading) const CircularProgressIndicator(),
+          if (completedAudioFilePath != null)
             MaterialButton(
               onPressed: () async {
-                if (_audioPlayer.playing) {
-                  await _audioPlayer.stop();
-
-                  setState(() {
-                    _isPlaying = false;
-                  });
-                } else {
-                  await _audioPlayer.setFilePath(_completedAudioFilePath!);
-                  await _audioPlayer.play();
-                  setState(() {
-                    _isPlaying = true;
-                  });
-                }
+                ref
+                    .read(audioRecordControllerProvider.notifier)
+                    .togglePlayAudio();
               },
               color: Theme.of(context).colorScheme.primary,
               child: Text(
-                _isPlaying ? "Stop Audio" : "Play Audio",
+                isPlaying ? "Stop Audio" : "Play Audio",
                 style: TextStyle(color: Colors.white),
               ),
             ),
-          if (_completedAudioFilePath == null)
+          if (completedAudioFilePath == null)
             MaterialButton(
               onPressed: () {},
               child: const Text("No Audio Recording Found 😀 "),

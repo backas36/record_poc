@@ -1,8 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -15,6 +15,7 @@ final audioRecordControllerProvider =
 
 class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
   final AudioRecorder _audioRecorder = AudioRecorder();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   AudioRecordState build() {
@@ -28,7 +29,6 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
   Future<void> startRecording() async {
     state = state.copyWith(isLoading: true);
     final hasMicrophonePermission = await _audioRecorder.hasPermission();
-    log("hasMicrophonePermission: $hasMicrophonePermission");
     try {
       if (hasMicrophonePermission) {
         final Directory appDocumentsDirectory =
@@ -37,9 +37,7 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
           appDocumentsDirectory.path,
           "recording.wav",
         );
-        log("audioFilePath: $audioFilePath");
         await _audioRecorder.start(RecordConfig(), path: audioFilePath);
-        log("startRecording: $audioFilePath");
         state = state.copyWith(
           isLoading: false,
           isRecording: true,
@@ -67,5 +65,24 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
         completedAudioFilePath: audioFilePath,
       );
     }
+  }
+
+  Future<void> togglePlayAudio() async {
+    if (state.isPlaying) {
+      await _stopAudio();
+    } else {
+      await _playAudio();
+    }
+  }
+
+  Future<void> _playAudio() async {
+    await _audioPlayer.setFilePath(state.completedAudioFilePath!);
+    await _audioPlayer.play();
+    state = state.copyWith(isPlaying: true);
+  }
+
+  Future<void> _stopAudio() async {
+    await _audioPlayer.stop();
+    state = state.copyWith(isPlaying: false);
   }
 }
