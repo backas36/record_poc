@@ -1,16 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:record/record.dart';
 import 'package:record_poc/controllers/audio_record_controller.dart';
 
-// TODO: refactor
-// TODO: isPlaying 轉換狀態有延遲
-// TODO: 播放完畢沒有回到 isPlaying true
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 

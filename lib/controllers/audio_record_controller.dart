@@ -26,8 +26,24 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
     );
   }
 
+  AudioRecordController() {
+    _audioPlayer.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.ready) {
+        state = state.copyWith(isPlaying: true);
+      }
+      if (playerState.processingState == ProcessingState.buffering) {
+        state = state.copyWith(isLoading: true);
+      }
+      if (playerState.processingState == ProcessingState.completed) {
+        state = state.copyWith(isPlaying: false);
+      }
+      if (playerState.processingState == ProcessingState.idle) {
+        state = state.copyWith(isLoading: false, isPlaying: false);
+      }
+    });
+  }
+
   Future<void> startRecording() async {
-    state = state.copyWith(isLoading: true);
     final hasMicrophonePermission = await _audioRecorder.hasPermission();
     try {
       if (hasMicrophonePermission) {
@@ -38,29 +54,19 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
           "recording.wav",
         );
         await _audioRecorder.start(RecordConfig(), path: audioFilePath);
-        state = state.copyWith(
-          isLoading: false,
-          isRecording: true,
-          completedAudioFilePath: null,
-        );
+        state = state.copyWith(isRecording: true, completedAudioFilePath: null);
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        isRecording: false,
-        completedAudioFilePath: null,
-      );
+      state = state.copyWith(isRecording: false, completedAudioFilePath: null);
       log(e.toString());
       rethrow;
     }
   }
 
   Future<void> stopRecording() async {
-    state = state.copyWith(isLoading: true);
     String? audioFilePath = await _audioRecorder.stop();
     if (audioFilePath != null) {
       state = state.copyWith(
-        isLoading: false,
         isRecording: false,
         completedAudioFilePath: audioFilePath,
       );
@@ -78,11 +84,9 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
   Future<void> _playAudio() async {
     await _audioPlayer.setFilePath(state.completedAudioFilePath!);
     await _audioPlayer.play();
-    state = state.copyWith(isPlaying: true);
   }
 
   Future<void> _stopAudio() async {
     await _audioPlayer.stop();
-    state = state.copyWith(isPlaying: false);
   }
 }
