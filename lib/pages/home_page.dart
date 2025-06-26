@@ -1,26 +1,28 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:record_poc/controllers/audio_record_controller.dart';
 
 // TODO: refactor
 // TODO: isPlaying 轉換狀態有延遲
 // TODO: 播放完畢沒有回到 isPlaying true
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final AudioRecorder _audioRecorder = AudioRecorder();
+class _HomePageState extends ConsumerState<HomePage> {
+  //final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  bool _isRecording = false;
+  //final bool _isRecording = false;
   String? _completedAudioFilePath;
   bool _isPlaying = false;
 
@@ -66,8 +68,7 @@ class _HomePageState extends State<HomePage> {
           if (_completedAudioFilePath == null)
             MaterialButton(
               onPressed: () {},
-              // TODO: add emoji here
-              child: const Text("No Audio Recording Found : ("),
+              child: const Text("No Audio Recording Found 😀 "),
             ),
         ],
       ),
@@ -75,33 +76,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildRecordButton() {
+    final isRecording = ref.watch(
+      audioRecordControllerProvider.select((value) => value.isRecording),
+    );
     return FloatingActionButton(
       onPressed: () async {
-        if (_isRecording) {
-          String? audioFilePath = await _audioRecorder.stop();
-          if (audioFilePath != null) {
-            setState(() {
-              _isRecording = false;
-              _completedAudioFilePath = audioFilePath;
-            });
-          }
+        if (isRecording) {
+          ref.read(audioRecordControllerProvider.notifier).stopRecording();
         } else {
-          if (await _audioRecorder.hasPermission()) {
-            final Directory appDocumentsDirectory =
-                await getApplicationDocumentsDirectory();
-            final String audioFilePath = p.join(
-              appDocumentsDirectory.path,
-              "recording.wav",
-            );
-            await _audioRecorder.start(RecordConfig(), path: audioFilePath);
-            setState(() {
-              _isRecording = true;
-              _completedAudioFilePath = null;
-            });
-          }
+          ref.read(audioRecordControllerProvider.notifier).startRecording();
         }
       },
-      child: _isRecording ? const Icon(Icons.mic_off) : const Icon(Icons.mic),
+      child: isRecording ? const Icon(Icons.mic_off) : const Icon(Icons.mic),
     );
   }
 }
