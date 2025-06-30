@@ -21,7 +21,7 @@ final audioRecordControllerProvider =
     );
 
 class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
-  //final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   AudioRecordState build() {

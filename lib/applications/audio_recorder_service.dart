@@ -39,10 +39,8 @@ final class AudioRecorderService extends AudioRecorderServiceImpl {
   Future<String?> stopRecording() async {
     try {
       final audioFilePath = await _audioRecorder.stop();
-      log(audioFilePath ?? "null");
       return audioFilePath;
     } catch (e) {
-      log(e.toString());
       throw (e.toString());
     }
   }
