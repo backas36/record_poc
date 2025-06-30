@@ -21,19 +21,11 @@ final audioRecordControllerProvider =
     );
 
 class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   AudioRecordState build() {
-    return const AudioRecordState(
-      isRecording: false,
-      isLoading: false,
-      isPlaying: false,
-    );
-  }
-
-  AudioRecordController() {
-    _audioPlayer.playerStateStream.listen((playerState) {
+    final audioRecorderService = ref.read(audioRecorderServiceProvider);
+    audioRecorderService.setPlayerStateCallback((playerState) {
       if (playerState.processingState == ProcessingState.ready) {
         state = state.copyWith(isPlaying: true);
       }
@@ -47,6 +39,12 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
         state = state.copyWith(isLoading: false, isPlaying: false);
       }
     });
+    
+    return const AudioRecordState(
+      isRecording: false,
+      isLoading: false,
+      isPlaying: false,
+    );
   }
 
   Future<void> startRecording() async {

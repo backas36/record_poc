@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +14,13 @@ final audioRecorderServiceProvider = Provider<AudioRecorderService>(
 final class AudioRecorderService extends AudioRecorderServiceImpl {
   final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
+  PlayerStateCallback? _playerStateCallback;
+
+  AudioRecorderService() {
+    _audioPlayer.playerStateStream.listen((playerState) {
+      _playerStateCallback?.call(playerState);
+    });
+  }
 
   @override
   Future<void> playAudio(String audioFilePath) async {
@@ -61,6 +67,11 @@ final class AudioRecorderService extends AudioRecorderServiceImpl {
     } catch (e) {
       throw (e.toString());
     }
+  }
+
+  @override
+  void setPlayerStateCallback(PlayerStateCallback callback) {
+    _playerStateCallback = callback;
   }
 
   Future<bool> _hasPermission() async {
