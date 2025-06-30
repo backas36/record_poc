@@ -7,7 +7,7 @@ import 'package:record_poc/state/audio_record_state.dart';
 
 ///
 /// TODO:
-/// 1. 分離關注點: 拆分 Controller 為 RecordingService, PlaybackService, FileService
+/// 1. 分離關注點: 拆分 Controller 為  PlaybackService, FileService
 /// 2. 增加資源管理: 實現 dispose 方法清理資源
 /// 3. 完善錯誤處理: 在狀態中加入錯誤信息
 /// 4. 改進文件管理: 使用時間戳生成唯一文件名
