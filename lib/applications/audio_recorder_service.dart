@@ -4,19 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:record/record.dart';
 import 'package:record_poc/applications/audio_recorder_service_impl.dart';
+import 'package:record_poc/data/repository/audio_recorder_repository_impl.dart';
 
-final audioRecorderServiceProvider = Provider<AudioRecorderService>(
-  (ref) => AudioRecorderService(),
-);
+final audioRecorderServiceProvider = Provider<AudioRecorderService>((ref) {
+  final audioRecorderRepository = ref.read(audioRecorderRepositoryProvider);
+  return AudioRecorderService(audioRecorderRepository);
+});
 
 final class AudioRecorderService extends AudioRecorderServiceImpl {
-  final AudioRecorder _audioRecorder = AudioRecorder();
+  final AudioRecorderRepository _audioRecorderRepository;
   final AudioPlayer _audioPlayer = AudioPlayer();
   PlayerStateCallback? _playerStateCallback;
 
-  AudioRecorderService() {
+  AudioRecorderService(this._audioRecorderRepository) {
     _audioPlayer.playerStateStream.listen((playerState) {
       _playerStateCallback?.call(playerState);
     });
@@ -44,7 +45,7 @@ final class AudioRecorderService extends AudioRecorderServiceImpl {
   @override
   Future<String?> stopRecording() async {
     try {
-      final audioFilePath = await _audioRecorder.stop();
+      final audioFilePath = await _audioRecorderRepository.stopRecording();
       return audioFilePath;
     } catch (e) {
       throw (e.toString());
@@ -54,16 +55,13 @@ final class AudioRecorderService extends AudioRecorderServiceImpl {
   @override
   Future<void> startRecording() async {
     try {
-      final hasMicPermission = await _hasPermission();
-      if (hasMicPermission) {
-        final Directory appDocumentsDirectory =
-            await getApplicationDocumentsDirectory();
-        String? audioFilePath = p.join(
-          appDocumentsDirectory.path,
-          "recording.wav",
-        );
-        await _audioRecorder.start(RecordConfig(), path: audioFilePath);
-      }
+      final Directory appDocumentsDirectory =
+          await getApplicationDocumentsDirectory();
+      String? audioFilePath = p.join(
+        appDocumentsDirectory.path,
+        "recording.wav",
+      );
+      await _audioRecorderRepository.startRecording(audioFilePath);
     } catch (e) {
       throw (e.toString());
     }
@@ -72,14 +70,5 @@ final class AudioRecorderService extends AudioRecorderServiceImpl {
   @override
   void setPlayerStateCallback(PlayerStateCallback callback) {
     _playerStateCallback = callback;
-  }
-
-  Future<bool> _hasPermission() async {
-    try {
-      final hasPermission = await _audioRecorder.hasPermission();
-      return hasPermission;
-    } catch (e) {
-      throw (e.toString());
-    }
   }
 }
