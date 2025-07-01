@@ -1,6 +1,4 @@
-import 'package:just_audio/just_audio.dart';
-
-typedef PlayerStateCallback = void Function(PlayerState state);
+import 'package:record_poc/data/repository/audio_player_repository_impl.dart';
 
 abstract class AudioRecorderServiceImpl {
   Future<void> startRecording();
@@ -10,6 +8,6 @@ abstract class AudioRecorderServiceImpl {
   Future<void> playAudio(String audioFilePath);
 
   Future<void> stopAudio();
-  
+
   void setPlayerStateCallback(PlayerStateCallback callback);
 }
