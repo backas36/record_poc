@@ -2,18 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:record_poc/applications/audio_recorder_service.dart';
+import 'package:record_poc/applications/audio_recorder_service_impl.dart';
 import 'package:record_poc/state/audio_record_state.dart';
-
-///
-/// TODO:
-/// 1. 分離關注點: 拆分 Controller 為  PlaybackService, FileService
-/// 2. 增加資源管理: 實現 dispose 方法清理資源
-/// 3. 完善錯誤處理: 在狀態中加入錯誤信息
-/// 4. 改進文件管理: 使用時間戳生成唯一文件名
-/// 5. 增強狀態模型: 加入播放進度、錄音時長等信息
-/// 6. 引入介面抽象: 便於測試和平台適配
-///
 
 final audioRecordControllerProvider =
     AutoDisposeNotifierProvider<AudioRecordController, AudioRecordState>(
@@ -21,10 +11,10 @@ final audioRecordControllerProvider =
     );
 
 class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
-
   @override
   AudioRecordState build() {
-    final audioRecorderService = ref.read(audioRecorderServiceProvider);
+    final audioRecorderService = ref.watch(audioRecorderServiceProvider);
+
     audioRecorderService.setPlayerStateCallback((playerState) {
       if (playerState.processingState == ProcessingState.ready) {
         state = state.copyWith(isPlaying: true);
@@ -39,7 +29,7 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
         state = state.copyWith(isLoading: false, isPlaying: false);
       }
     });
-    
+
     return const AudioRecordState(
       isRecording: false,
       isLoading: false,
@@ -77,3 +67,15 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
     }
   }
 }
+
+/// 完整的生命週期流程
+
+/// 1. 用戶進入頁面
+/// 2. Controller build() 被調用
+/// 3. ref.watch 建立依賴 + 設定回調
+/// 4. Service 提供功能
+
+/// 5. 用戶離開頁面
+/// 6. Service 被釋放
+/// 7. Controller 偵測到依賴變化
+/// 8. Controller 重建並設定新的回調

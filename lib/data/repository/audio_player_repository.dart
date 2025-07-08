@@ -1,47 +1,13 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:record_poc/data/repository/audio_player_repository_impl.dart';
 
-final audioPlayerRepositoryProvider = Provider<AudioPlayerRepository>(
-  (ref) => AudioPlayerRepository(),
-);
+typedef PlayerStateCallback = void Function(PlayerState state);
 
-final class AudioPlayerRepository extends AudioPlayerRepositoryImpl {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  PlayerStateCallback? _playerStateCallback;
+abstract interface class AudioPlayerRepository {
+  Future<void> playAudio(String audioFilePath);
 
-  AudioPlayerRepository() {
-    _audioPlayer.playerStateStream.listen((playerState) {
-      _playerStateCallback?.call(playerState);
-    });
-  }
+  Future<void> stopAudio();
 
-  @override
-  Future<void> playAudio(String audioFilePath) async {
-    try {
-      await _audioPlayer.setFilePath(audioFilePath);
-      await _audioPlayer.play();
-    } catch (e) {
-      rethrow;
-    }
-  }
+  void setPlayerStateCallback(PlayerStateCallback callback);
 
-  @override
-  Future<void> stopAudio() async {
-    try {
-      await _audioPlayer.stop();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  void setPlayerStateCallback(PlayerStateCallback callback) {
-    _playerStateCallback = callback;
-  }
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-  }
+  void dispose();
 }
