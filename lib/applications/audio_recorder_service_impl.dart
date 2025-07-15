@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record_poc/applications/audio_recorder_service.dart';
@@ -18,20 +20,37 @@ final audioRecorderServiceProvider = AutoDisposeProvider<AudioRecorderService>((
   final audioRecorderRepository = ref.watch(audioRecorderRepositoryProvider);
   final audioPlayerRepository = ref.watch(audioPlayerRepositoryProvider);
 
-  return AudioRecorderServiceImpl(
+  final service = AudioRecorderServiceImpl(
     audioRecorderRepository,
     audioPlayerRepository,
   );
+
+  // 確保資源清理
+  ref.onDispose(() {
+    service.dispose();
+  });
+
+  return service;
 });
 
 final class AudioRecorderServiceImpl implements AudioRecorderService {
   final AudioRecorderRepository _audioRecorderRepository;
   final AudioPlayerRepository _audioPlayerRepository;
+  final StreamController<PlayerState> _playerStateController =
+      StreamController<PlayerState>.broadcast();
 
   AudioRecorderServiceImpl(
     this._audioRecorderRepository,
     this._audioPlayerRepository,
-  );
+  ) {
+    // 設定播放器狀態回調，轉發到 Stream
+    _audioPlayerRepository.setPlayerStateCallback((playerState) {
+      _playerStateController.add(playerState);
+    });
+  }
+
+  @override
+  Stream<PlayerState> get playerStateStream => _playerStateController.stream;
 
   @override
   Future<void> playAudio(String audioFilePath) async {
@@ -77,8 +96,7 @@ final class AudioRecorderServiceImpl implements AudioRecorderService {
     }
   }
 
-  @override
-  void setPlayerStateCallback(PlayerStateCallback callback) {
-    _audioPlayerRepository.setPlayerStateCallback(callback);
+  void dispose() {
+    _playerStateController.close();
   }
 }

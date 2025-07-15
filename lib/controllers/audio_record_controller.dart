@@ -15,19 +15,9 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
   AudioRecordState build() {
     final audioRecorderService = ref.watch(audioRecorderServiceProvider);
 
-    audioRecorderService.setPlayerStateCallback((playerState) {
-      if (playerState.processingState == ProcessingState.ready) {
-        state = state.copyWith(isPlaying: true);
-      }
-      if (playerState.processingState == ProcessingState.buffering) {
-        state = state.copyWith(isLoading: true);
-      }
-      if (playerState.processingState == ProcessingState.completed) {
-        state = state.copyWith(isPlaying: false);
-      }
-      if (playerState.processingState == ProcessingState.idle) {
-        state = state.copyWith(isLoading: false, isPlaying: false);
-      }
+    // 監聽播放器狀態流
+    audioRecorderService.playerStateStream.listen((playerState) {
+      _handlePlayerStateChange(playerState);
     });
 
     return const AudioRecordState(
@@ -35,6 +25,24 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
       isLoading: false,
       isPlaying: false,
     );
+  }
+
+  void _handlePlayerStateChange(PlayerState playerState) {
+    switch (playerState.processingState) {
+      case ProcessingState.ready:
+        state = state.copyWith(isPlaying: true, isLoading: false);
+        break;
+      case ProcessingState.buffering:
+      case ProcessingState.loading:
+        state = state.copyWith(isLoading: true, isPlaying: false);
+        break;
+      case ProcessingState.completed:
+        state = state.copyWith(isPlaying: false, isLoading: false);
+        break;
+      case ProcessingState.idle:
+        state = state.copyWith(isLoading: false, isPlaying: false);
+        break;
+    }
   }
 
   Future<void> startRecording() async {
@@ -72,10 +80,10 @@ class AudioRecordController extends AutoDisposeNotifier<AudioRecordState> {
 
 /// 1. 用戶進入頁面
 /// 2. Controller build() 被調用
-/// 3. ref.watch 建立依賴 + 設定回調
-/// 4. Service 提供功能
+/// 3. ref.watch 建立依賴 + 監聽狀態流
+/// 4. Service 初始化並設定狀態流轉發
 
 /// 5. 用戶離開頁面
-/// 6. Service 被釋放
+/// 6. Service 被釋放 (dispose 關閉 StreamController)
 /// 7. Controller 偵測到依賴變化
-/// 8. Controller 重建並設定新的回調
+/// 8. Controller 重建並重新監聽狀態流

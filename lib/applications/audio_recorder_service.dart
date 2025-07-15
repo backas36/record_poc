@@ -1,4 +1,4 @@
-import 'package:record_poc/data/repository/audio_player_repository.dart';
+import 'package:just_audio/just_audio.dart';
 
 abstract interface class AudioRecorderService {
   Future<void> startRecording();
@@ -9,5 +9,5 @@ abstract interface class AudioRecorderService {
 
   Future<void> stopAudio();
 
-  void setPlayerStateCallback(PlayerStateCallback callback);
+  Stream<PlayerState> get playerStateStream;
 }
