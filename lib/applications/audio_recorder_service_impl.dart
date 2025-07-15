@@ -18,17 +18,17 @@ final audioRecorderServiceProvider = AutoDisposeProvider<AudioRecorderService>((
   final audioRecorderRepository = ref.watch(audioRecorderRepositoryProvider);
   final audioPlayerRepository = ref.watch(audioPlayerRepositoryProvider);
 
-  return AudioRecorderImplService(
+  return AudioRecorderServiceImpl(
     audioRecorderRepository,
     audioPlayerRepository,
   );
 });
 
-final class AudioRecorderImplService implements AudioRecorderService {
+final class AudioRecorderServiceImpl implements AudioRecorderService {
   final AudioRecorderRepository _audioRecorderRepository;
   final AudioPlayerRepository _audioPlayerRepository;
 
-  AudioRecorderImplService(
+  AudioRecorderServiceImpl(
     this._audioRecorderRepository,
     this._audioPlayerRepository,
   );

@@ -4,7 +4,7 @@ import 'package:record_poc/data/repository/audio_recorder_repository.dart';
 
 final audioRecorderRepositoryProvider =
     AutoDisposeProvider<AudioRecorderRepository>((ref) {
-      final repository = AudioRecorderImplRepository();
+      final repository = AudioRecorderRepositoryImpl();
 
       // 確保麥克風資源被正確釋放
       ref.onDispose(() {
@@ -14,7 +14,7 @@ final audioRecorderRepositoryProvider =
       return repository;
     });
 
-final class AudioRecorderImplRepository implements AudioRecorderRepository {
+final class AudioRecorderRepositoryImpl implements AudioRecorderRepository {
   final AudioRecorder _audioRecorder = AudioRecorder();
 
   Future<bool> _hasPermission() async {

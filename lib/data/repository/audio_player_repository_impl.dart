@@ -13,7 +13,7 @@ import 'package:record_poc/data/repository/audio_player_repository.dart';
 ///     修改代碼 → 重新載入 → 觸發 onDispose
 final audioPlayerRepositoryProvider =
     AutoDisposeProvider<AudioPlayerRepository>((ref) {
-      final repository = AudioPlayerImplRepository();
+      final repository = AudioPlayerRepositoryImpl();
 
       ref.onDispose(() {
         repository.dispose();
@@ -22,12 +22,12 @@ final audioPlayerRepositoryProvider =
       return repository;
     });
 
-final class AudioPlayerImplRepository implements AudioPlayerRepository {
+final class AudioPlayerRepositoryImpl implements AudioPlayerRepository {
   final AudioPlayer _audioPlayer = AudioPlayer();
   PlayerStateCallback? _playerStateCallback;
   StreamSubscription<PlayerState>? _playerStateSubscription;
 
-  AudioPlayerImplRepository() {
+  AudioPlayerRepositoryImpl() {
     _playerStateSubscription = _audioPlayer.playerStateStream.listen((
       playerState,
     ) {
